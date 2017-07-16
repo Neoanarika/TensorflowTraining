@@ -7,7 +7,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # Parameters
 learning_rate = 0.01
-training_epochs = 1
+training_epochs = 6
 batch_size = 100
 
 import tensorflow as tf
@@ -42,20 +42,21 @@ W5 = tf.Variable(tf.truncated_normal([L4, 10], stddev=0.1))
 B5 = tf.Variable(tf.zeros([10]))
 
 # Step 2: Setup Model
+stride = 2 
+
 # output is 32x32
 Y1 = tf.nn.relu(tf.nn.conv2d(X, W1, strides=[1, 1, 1, 1], padding='SAME') + B1)
-stride = 2  # output is 16x16
-Y2 = tf.nn.relu(tf.nn.conv2d(Y1, W2, strides=[1, 1, 1, 1], padding='SAME') + B2)
+# output is 16x16
 Y2 = tf.nn.max_pool(Y2, ksize=[1, 2, 2, 1], strides=[1, stride, stride, 1], padding='SAME')
-stride = 2  # output is 8x8
-Y3 = tf.nn.relu(tf.nn.conv2d(Y2, W3, strides=[1, 1, 1, 1], padding='SAME') + B3)
-Y3 = tf.nn.max_pool(Y3, ksize=[1, 2, 2, 1], strides=[1, stride, stride, 1], padding='SAME')
+Y2 = tf.nn.relu(tf.nn.conv2d(Y1, W2, strides=[1, 1, 1, 1], padding='SAME') + B2)
+# output is 8x8
+Y2 = tf.nn.max_pool(Y2, ksize=[1, 2, 2, 1], strides=[1, stride, stride, 1], padding='SAME')
 
 # reshape the output from the third convolution for the fully connected layer
-YY = tf.reshape(Y3, shape=[-1, 8 * 8 * L3])
+YY = tf.reshape(Y2, shape=[-1, 8 * 8 * L3])
 
 Y4 = tf.nn.relu(tf.matmul(YY, W4) + B4)
-YY4 = tf.nn.dropout(Y4, pkeep)
+YY4 = tf.nn.dropout(Y4, pkeep) #pkeep = 0.7
 Ylogits = tf.matmul(Y4, W5) + B5
 yhat = tf.nn.softmax(Ylogits)
 
